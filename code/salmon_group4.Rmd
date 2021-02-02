@@ -2,10 +2,66 @@
 title: "Willamette Falls fish passage time series summary"
 author: "Bri Baker, Jaleise Hall, Minnie Ringland"
 date: "1/31/2021"
-output: html_document
+output:
+  html_document:
+    theme: cosmo
+    code_folding: hide
+    highlight: kate
 ---
 
 ```{r setup, include=FALSE}
-knitr::opts_chunk$set(echo = TRUE)
+knitr::opts_chunk$set(echo = TRUE, message = FALSE, warning = FALSE)
+library(tidyverse)
+library(here)
+library(janitor)
+library(lubridate) # date manipulation
+library(tsibble) #time series table
+library(feasts) # seasonplot
+```
+
+## Overview {.tabset}
+
+![Salmon leaping at Willamette Falls from NOAA's Historic Fisheries Collection. Unknown photographer, 27 June 1950.](https://upload.wikimedia.org/wikipedia/commons/c/cb/Salmon_leaping_at_Willamette_Falls.jpg)
+
+
+
+Our overview goes here; includes an image, summary of dataset and report, map of fish ladder location, and data citation
+
+```{r map}
+# wanted to put in a map manually here, but I was having trouble with my API (coordinates 45.351074, -122.619110)
+
+```
+
+
+
+```{r data import}
+willamette_salmon <- read_csv(here("data", "willamette_fish_passage.csv")) %>%  # read in data
+  clean_names() %>% # names in tidy format
+  select(date, coho, jack_coho, steelhead) %>% # select desired species
+  mutate(date = mdy(date))
+
+```
+
+
+### Original time series
+
+```{r timeseries}
+
+```
+
+
+
+### Seasonplots
+
+```{r seasonplot}
+
+```
+
+
+
+### Annual counts by species
+
+```{r annual counts}
+
 ```
 
