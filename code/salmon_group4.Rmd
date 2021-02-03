@@ -25,7 +25,19 @@ library(feasts) # seasonplot
 
 
 
-Our overview goes here; includes an image, summary of dataset and report, map of fish ladder location, and data citation
+Our overview goes here; includes
+
+- an image (done)  
+- summary of dataset and report  
+- map of fish ladder location  
+- data citation (done-ish? How do you two feel about the format?)
+
+Hydroelectric power represents an important renewable and low-emissions energy source, but the construction and development of the water source that these plants can require sometimes threatens resident fish populations. Fishways have been constructed and updated over time at Willamette Falls to aid the passage of salmon and steelhead runs over the falls. Daily fish counts are monitored to ensure that migration of these fish populations continues to be unhindered by the power plant and the falls. This project summarizes findings from studying monitoring data from 2001 to 2010.
+
+Data were shared by and accessed from [Columbia River DART](http://www.cbr.washington.edu/dart/overview):  
+Columbia River DART (Data Access in Real Time), Columbia Basin Research, University of Washington  
+Accessed Feb 1, 2021 at [http://www.cbr.washington.edu/dart/query/adult_graph_text](http://www.cbr.washington.edu/dart/query/adult_graph_text).
+
 
 ```{r map}
 # wanted to put in a map manually here, but I was having trouble with my API (coordinates 45.351074, -122.619110)
@@ -59,9 +71,24 @@ willamette_salmon <- read_csv(here("data", "willamette_fish_passage.csv")) %>%  
 
 
 
-### Annual counts by species
+### Annual counts by species - Minnie (still ugly!)
 
 ```{r annual counts}
+
+annual <- willamette_salmon %>%
+  as_tsibble(key = NULL, index = date) %>% #Not sure if it's already a tsibble?
+  index_by(yr = ~year(.)) %>% 
+  summarize(annual_coho = sum(coho, na.rm = TRUE),
+            annual_jack_coho = sum(jack_coho, na.rm = TRUE),
+            annual_steelhead = sum(steelhead, na.rm = TRUE)
+            )
+
+ggplot(data = annual) +
+  geom_line(aes(x=yr, y=annual_coho), color = "blue") +
+    geom_line(aes(x=yr, y=annual_jack_coho), color = "green") +
+    geom_line(aes(x=yr, y=annual_steelhead), color = "red")
+  
+
 
 ```
 
