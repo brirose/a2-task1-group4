@@ -21,7 +21,7 @@ library(maps)
 library(sf)
 library(rnaturalearth)
 library(rnaturalearthdata)
-
+library(rgeos) #for worlds polygon (it won't let me run the code without this)
 ```
 
 ## Overview {.tabset}
@@ -77,15 +77,13 @@ willamette_salmon <- read_csv(here("data", "willamette_fish_passage.csv")) %>%  
   mutate(date = mdy(date)) %>%  # make date class
    as_tsibble(key = NULL, index = date)# convert to tsibble
 
-
-
 ```
 
 
 ### Original time series
 
-
-```{r timeseries}
+<<<<<<< HEAD
+```{r timeseries, Bri Baker}
 
 willamette_salmon %>%  
   replace(is.na(.), 0) %>%  # replace na with 0
@@ -121,9 +119,35 @@ willamette_salmon %>%
 
 
 
-### Seasonplots
+### Seasonplots -- Also ugly and unfinished
 
-```{r seasonplot}
+```{r seasonplot, Jaleise Hall}
+
+salmon_season <-  willamette_salmon %>%
+  rename(Coho = coho,
+         "Jack Coho" = jack_coho,
+         Steelhead = steelhead) %>% 
+  pivot_longer(Coho:Steelhead, 
+               names_to = "species",
+               values_to = "counts") 
+salmon_season %>% 
+  gg_season(counts)
+
+coho_subset <- willamette_salmon %>% 
+  select(date, coho) 
+coho_subset %>% 
+  gg_season(coho)
+
+jack_coho_subset <- willamette_salmon %>% 
+  select(date, jack_coho) 
+jack_coho_subset %>% 
+  gg_season(jack_coho)
+
+steelhead_subset <- willamette_salmon %>% 
+  select(date, steelhead) 
+steelhead_subset %>% 
+  gg_season(steelhead)
+
 
 ```
 
@@ -131,7 +155,7 @@ willamette_salmon %>%
 
 ### Annual counts by species - Minnie (still ugly!)
 
-```{r annual counts}
+```{r annual counts, Minnie Ringland}
 
 annual <- willamette_salmon %>%
   index_by(yr = ~year(.)) %>% # index by year
