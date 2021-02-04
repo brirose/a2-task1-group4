@@ -40,12 +40,15 @@ willamette_salmon <- read_csv(here("data", "willamette_fish_passage.csv")) %>%  
   select(date, coho, jack_coho, steelhead) %>% # select desired species
   mutate(date = mdy(date))
 
+salmon_ts <- willamette_salmon %>% 
+  as_tsibble(key = NULL, index = date)
+
 ```
 
 
 ### Original time series
 
-```{r timeseries}
+```{r timeseries, Bri Baker}
 
 ```
 
@@ -53,7 +56,8 @@ willamette_salmon <- read_csv(here("data", "willamette_fish_passage.csv")) %>%  
 
 ### Seasonplots
 
-```{r seasonplot}
+```{r seasonplot, Jaleise Hall}
+
 
 ```
 
@@ -61,7 +65,7 @@ willamette_salmon <- read_csv(here("data", "willamette_fish_passage.csv")) %>%  
 
 ### Annual counts by species
 
-```{r annual counts}
+```{r annual counts, Minnie Ringland}
 
 ```
 
