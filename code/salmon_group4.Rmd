@@ -77,7 +77,13 @@ willamette_salmon <- read_csv(here("data", "willamette_fish_passage.csv")) %>%  
   clean_names() %>% # names in tidy format
   select(date, coho, jack_coho, steelhead) %>% # select desired species
   mutate(date = mdy(date)) %>%  # make date class
-   as_tsibble(key = NULL, index = date)# convert to tsibble
+   as_tsibble(key = NULL, index = date) # convert to tsibble
+
+salmon_longer <- willamette_salmon %>%  
+  replace(is.na(.), 0) %>%  # replace na with 0
+  pivot_longer(coho:steelhead, # consolidate species to one column
+               names_to = "species",
+               values_to = "counts") 
 
 ```
 
@@ -97,12 +103,7 @@ salmon_longer <- willamette_salmon %>%
 
 ```{r timeseries, Bri Baker}
 
-willamette_salmon %>%  
-  replace(is.na(.), 0) %>%  # replace na with 0
-  pivot_longer(coho:steelhead, # consolidate species to one column
-               names_to = "species",
-               values_to = "counts") %>% 
-  ggplot(aes(x = date, y = counts, color = species)) + # make ggplot
+  ggplot(salmon_longer, aes(x = date, y = counts, color = species)) + # make ggplot
   geom_line() + #as a lineplot
   labs(x = "Year", # add labs
        y = "Count",
@@ -144,6 +145,7 @@ salmon_season <-  willamette_salmon %>%
   pivot_longer(Coho:Steelhead, 
                names_to = "species",
                values_to = "counts") 
+
 salmon_season %>% 
   gg_season(counts)
 
@@ -163,20 +165,26 @@ steelhead_subset %>%
   gg_season(steelhead)
 ```
 
+```{r}
+gg_subseries(salmon_longer, period = "day")
+```
+
+
 ### Annual counts by species
 
 Issues I'm having: 
-* I think the "year" variable I'm using is not a date type? Bri's code for formatting the x-axis breaks isn't working for me.
+* I think the "year" variable I'm using is not a date type? Bri's code for formatting the x-axis breaks isn't working for me.; yeah its not of date class; i converted it, but what you had also works (just remove the `mutate`)
 * How to get the facets labeled with the proper names of the species?
 
 ```{r annual counts}
 # Using Bri's "pivot_longer-ed" df:
 annual <- salmon_longer %>%
+  group_by_key() %>% # group by sp
   index_by(yr = ~year(.)) %>% # index by year
-  group_by(yr, species) %>% 
-  summarize(annual_count = sum(counts)) # sum counts by year and species
+  summarize(annual_count = sum(counts)) %>% # sum counts by year and species
+  mutate(yr = as.Date(ISOdate(yr, 1, 1)))
 
-labels <- c("Coho", "Jack Coho", "Steelhead") # capitalize
+species_labs <- c("Coho", "Jack Coho", "Steelhead") # capitalize
 
 # Using Bri's graph formatting:
 ggplot(data = annual, aes(x = yr, y = annual_count, fill = species)) + # make ggplot
@@ -187,12 +195,14 @@ ggplot(data = annual, aes(x = yr, y = annual_count, fill = species)) + # make gg
        subtitle = "2001 - 2010",
        caption = "Minnie Ringland, 2021\nSource: Columbia River DART") +
   scale_fill_manual(values = c("aquamarine3", "cornflowerblue", "goldenrod1")) + # change colors
-  scale_x_discrete(breaks = 2001:2011) +
-  #(date_breaks = "1 year", # show all years #date_labels = "%Y") +
+  #scale_x_discrete(breaks = 2001:2011) +
+  scale_x_date(date_breaks = "1 year", # show all years #
+   date_labels = "%Y") +
   theme_minimal() + # use theme_minimal
   theme(legend.position = "none", # faceted so no legend
-        axis.text.x = element_text(angle = 30, vjust = 1, hjust = 1)) + # angle x labels
-  facet_wrap(~species)#,labeller=labeller(species = labels))
+        axis.text.x = element_text(angle = 45, vjust = 1, hjust = 1)) + # angle x labels
+  facet_wrap(~species)
+             #labeller = labeller(species = species_labs))
 
 
 ```
