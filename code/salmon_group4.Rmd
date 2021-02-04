@@ -17,6 +17,11 @@ library(janitor)
 library(lubridate) # date manipulation
 library(tsibble) #time series table
 library(feasts) # seasonplot
+library(maps)
+library(sf)
+library(rnaturalearth)
+library(rnaturalearthdata)
+
 ```
 
 ## Overview {.tabset}
@@ -29,10 +34,10 @@ Our overview goes here; includes
 
 - an image (done)  
 - summary of dataset and report  
-- map of fish ladder location  
-- data citation (done-ish? How do you two feel about the format?)
+- map of fish ladder location (do we want more info on this?)
+- data citation (done-ish? How do you two feel about the format?, looks ok to me)
 
-Hydroelectric power represents an important renewable and low-emissions energy source, but the construction and development of the water source that these plants can require sometimes threatens resident fish populations. Fishways have been constructed and updated over time at Willamette Falls to aid the passage of salmon and steelhead runs over the falls. Daily fish counts are monitored to ensure that migration of these fish populations continues to be unhindered by the power plant and the falls. This project summarizes findings from studying monitoring data from 2001 to 2010.
+Hydroelectric power represents an important renewable and low-emissions energy source, but the construction and development of the water source that the power plants can require sometimes threatens resident fish populations. Willamette Falls, located outside of Portland in northwestern Oregon (see map below), is an important traditional Native American fishing ground. To protect this natural resource and aid the passage of salmon and steelhead runs over the falls, fishways have been constructed and updated over time. Daily fish counts are monitored to ensure that migration of these fish populations continues to be unhindered by the power plant and the falls. This project summarizes findings from studying Willamette Falls monitoring data from 2001 to 2010.
 
 Data were shared by and accessed from [Columbia River DART](http://www.cbr.washington.edu/dart/overview):  
 Columbia River DART (Data Access in Real Time), Columbia Basin Research, University of Washington  
@@ -40,26 +45,79 @@ Accessed Feb 1, 2021 at [http://www.cbr.washington.edu/dart/query/adult_graph_te
 
 
 ```{r map}
-# wanted to put in a map manually here, but I was having trouble with my API (coordinates 45.351074, -122.619110)
+# Map of Willamette Falls - this looks great!!
+world <- ne_countries(scale = "medium", returnclass = "sf") # pull world data
+states <- st_as_sf(map("state", plot = FALSE, fill = TRUE)) # pull state data
+states <- cbind(states, st_coordinates(st_centroid(states))) # project
+
+falls <- data.frame(longitude = c(-122.61763), latitude = c(45.35239)) %>% # make point
+  st_as_sf(coords = c("longitude", "latitude"), # as sf
+           crs = 4326, agr = "constant")
+
+ggplot(data = world) + # plot
+  geom_sf(fill = "antiquewhite") +
+  geom_sf(data = states, fill = "peachpuff3") + # add state outlines and fill
+  geom_sf(data = falls, size = 4, shape = 23, fill = "royalblue3") + # add falls loc
+  coord_sf(xlim = c(-125, -110), ylim = c(40, 50), expand = FALSE) + # set bounding
+  theme_minimal() + # minimal theme
+  labs(title = "Willamette Falls location", # add labs
+       subtitle = "2001 - 2010",
+       caption = "Bri Baker, 2021")
 
 ```
 
 
 
 ```{r data import}
+
 willamette_salmon <- read_csv(here("data", "willamette_fish_passage.csv")) %>%  # read in data
   clean_names() %>% # names in tidy format
   select(date, coho, jack_coho, steelhead) %>% # select desired species
-  mutate(date = mdy(date))
+  mutate(date = mdy(date)) %>%  # make date class
+   as_tsibble(key = NULL, index = date)# convert to tsibble
+
+
 
 ```
 
 
 ### Original time series
 
+
 ```{r timeseries}
+# Bri, I am saving your df if that's ok - so I can use it later on!
+salmon_longer <- willamette_salmon %>%  
+  replace(is.na(.), 0) %>%  # replace na with 0
+  pivot_longer(coho:steelhead, # consolidate species to one column
+               names_to = "species",
+               values_to = "counts")
+
+ggplot(data = salmon_longer, aes(x = date, y = counts, color = species)) + # make ggplot
+  geom_line() + #as a lineplot
+  labs(x = "Year", # add labs
+       y = "Count",
+       title = "Salmon counts at Willamette Falls fish passage",
+       subtitle = "2001 - 2010",
+       caption = "Bri Baker, 2021\nSource: Columbia River DART",
+       color = "Species") +
+  scale_color_manual(labels = c("Coho", "Jack Coho", "Steelhead"), # change legend names
+                     values = c("aquamarine3", "cornflowerblue", "goldenrod1")) + # change colors
+  scale_x_date(date_breaks = "1 year", # show all years
+               date_labels = "%Y") +
+  theme_minimal() + # use theme_minimal
+  theme(legend.position = c(0.15, 0.75), # move legend
+        legend.background = element_rect(fill="white", linetype = "solid", color = "whitesmoke"), # format legend
+        axis.text.x = element_text(angle = 30, vjust = 1, hjust = 1)) # angle x labels
+
 
 ```
+
+
+#### Takeaways
+
+* The bulk of Steelhead movement occurs earlier in the year than that of Coho and Jack Coho
+* Coho increased in abundance over the time studied, particularly in 2009 and 2010.
+
 
 
 
@@ -71,22 +129,34 @@ willamette_salmon <- read_csv(here("data", "willamette_fish_passage.csv")) %>%  
 
 
 
-### Annual counts by species - Minnie (still ugly!)
+### Annual counts by species
 
 ```{r annual counts}
+# Using Bri's "pivot_longer-ed" df:
+annual <- salmon_longer %>%
+  index_by(yr = ~year(.)) %>% # index by year
+  group_by(yr, species) %>% 
+  summarize(annual_count = sum(counts)) # sum counts by year and species
 
-annual <- willamette_salmon %>%
-  as_tsibble(key = NULL, index = date) %>% #Not sure if it's already a tsibble?
-  index_by(yr = ~year(.)) %>% 
-  summarize(annual_coho = sum(coho, na.rm = TRUE),
-            annual_jack_coho = sum(jack_coho, na.rm = TRUE),
-            annual_steelhead = sum(steelhead, na.rm = TRUE)
-            )
+labels <- c("Coho", "Jack Coho", "Steelhead") # capitalize
 
-ggplot(data = annual) +
-  geom_line(aes(x=yr, y=annual_coho), color = "blue") +
-    geom_line(aes(x=yr, y=annual_jack_coho), color = "green") +
-    geom_line(aes(x=yr, y=annual_steelhead), color = "red")
+# Using Bri's graph formatting:
+ggplot(data = annual, aes(x = yr, y = annual_count, fill = species)) + # make ggplot
+  geom_col() + #as a barchart
+  labs(x = "Year", # add labs
+       y = "Count",
+       title = "Salmon counts at Willamette Falls fish passage by year",
+       subtitle = "2001 - 2010",
+       caption = "Minnie Ringland, 2021\nSource: Columbia River DART",
+       color = "Species") +
+  scale_fill_manual(values = c("aquamarine3", "cornflowerblue", "goldenrod1")) + # change colors
+  #scale_x_date(date_breaks = "1 year", # show all years
+               #date_labels = "%Y") +
+  theme_minimal() + # use theme_minimal
+  theme(legend.position = "none", # faceted so no legend
+        axis.text.x = element_text(angle = 30, vjust = 1, hjust = 1)) + # angle x labels
+  facet_wrap(~species,labeller=labeller(species = labels))
+
   
 
 
