@@ -21,7 +21,7 @@ library(maps)
 library(sf)
 library(rnaturalearth)
 library(rnaturalearthdata)
-library(rgeos) #for worlds polygon (it won't let me run the code without this)
+library(rgeos) #for worlds polygon 
 ```
 
 ## Overview {.tabset}
@@ -66,15 +66,6 @@ willamette_salmon <- read_csv(here("data", "willamette_fish_passage.csv")) %>%  
   select(date, coho, jack_coho, steelhead) %>% # select desired species
   mutate(date = mdy(date)) %>%  # make date class
    as_tsibble(key = NULL, index = date) # convert to tsibble
-<<<<<<< HEAD
-=======
-
-salmon_longer <- willamette_salmon %>%  
-  replace(is.na(.), 0) %>%  # replace na with 0
-  pivot_longer(coho:steelhead, # consolidate species to one column
-               names_to = "species",
-               values_to = "counts") 
->>>>>>> origin
 
 salmon_longer <- willamette_salmon %>%  
   replace(is.na(.), 0) %>%  # replace na with 0
@@ -88,7 +79,6 @@ salmon_longer <- willamette_salmon %>%
 
 ```{r timeseries, Bri Baker}
 
-<<<<<<< HEAD
 salmon_longer <- willamette_salmon %>%  
   replace(is.na(.), 0) %>%  # replace na with 0
   rename(Coho = coho,
@@ -99,9 +89,6 @@ salmon_longer <- willamette_salmon %>%
                values_to = "counts")
 
 ggplot(salmon_longer, aes(x = date, y = counts, color = species)) + # make ggplot
-=======
-  ggplot(salmon_longer, aes(x = date, y = counts, color = species)) + # make ggplot
->>>>>>> origin
   geom_line() + #as a lineplot
   labs(x = "Year", # add labs
        y = "Count",
@@ -131,20 +118,8 @@ ggplot(salmon_longer, aes(x = date, y = counts, color = species)) + # make ggplo
 ### Seasonplots 
 
 ```{r seasonplot, Jaleise Hall}
-<<<<<<< HEAD
 
 salmon_season <- salmon_longer %>% 
-=======
-salmon_season <-  willamette_salmon %>%
-  rename(Coho = coho,
-         "Jack Coho" = jack_coho,
-         Steelhead = steelhead) %>% 
-  pivot_longer(Coho:Steelhead, 
-               names_to = "species",
-               values_to = "counts") 
-
-salmon_season %>% 
->>>>>>> origin
   gg_season(counts)
 
 coho_subset <- willamette_salmon %>% 
@@ -166,7 +141,6 @@ gg_subseries(salmon_longer, period = "day")
 
 ```
 
-<<<<<<< HEAD
 #### Takeaways
 
 * 
@@ -174,37 +148,20 @@ gg_subseries(salmon_longer, period = "day")
 *
 
 ### Annual counts by species
-=======
-```{r}
-gg_subseries(salmon_longer, period = "day")
-```
-
-
-### Annual counts by species
 
 Issues I'm having: 
 * I think the "year" variable I'm using is not a date type? Bri's code for formatting the x-axis breaks isn't working for me.; yeah its not of date class; i converted it, but what you had also works (just remove the `mutate`)
 * How to get the facets labeled with the proper names of the species?
->>>>>>> origin
 
 ```{r annual counts, Minnie Ringland}
 # Using Bri's "pivot_longer-ed" df:
 annual <- salmon_longer %>%
-<<<<<<< HEAD
-  group_by_key() %>% # group by species
-  index_by(yr = ~year(.)) %>% # grouping the time index by year
-  #group_by(yr, species) %>% 
-  summarize(annual_count = sum(counts)) %>% # sum counts by year and species
-  mutate(yr = as.Date(ISOdate(yr, 1, 1)))
-=======
   group_by_key() %>% # group by sp
   index_by(yr = ~year(.)) %>% # index by year
   summarize(annual_count = sum(counts)) %>% # sum counts by year and species
   mutate(yr = as.Date(ISOdate(yr, 1, 1)))
 
 species_labs <- c("Coho", "Jack Coho", "Steelhead") # capitalize
->>>>>>> origin
-
 # Using Bri's graph formatting:
 ggplot(data = annual, aes(x = yr, y = annual_count, color = species)) +
   geom_line(size=1.25) +
@@ -213,15 +170,6 @@ ggplot(data = annual, aes(x = yr, y = annual_count, color = species)) +
        title = "Salmon counts at Willamette Falls fish passage by year",
        subtitle = "2001 - 2010",
        caption = "Minnie Ringland, 2021\nSource: Columbia River DART") +
-<<<<<<< HEAD
-  scale_color_manual(values = c("aquamarine3", "cornflowerblue", "goldenrod1")) + # change colors
-  scale_x_date(date_breaks = "1 year", # show all years
-               date_labels = "%Y") +
-  theme_minimal() +
-  theme(legend.position = c(0.75, 0.75), # move legend
-        legend.background = element_rect(fill="white", linetype = "solid", color = "whitesmoke"), # format legend
-        axis.text.x = element_text(angle = 30, vjust = 1, hjust = 1)) # angle x labels
-=======
   scale_fill_manual(values = c("aquamarine3", "cornflowerblue", "goldenrod1")) + # change colors
   #scale_x_discrete(breaks = 2001:2011) +
   scale_x_date(date_breaks = "1 year", # show all years #
@@ -231,8 +179,6 @@ ggplot(data = annual, aes(x = yr, y = annual_count, color = species)) +
         axis.text.x = element_text(angle = 45, vjust = 1, hjust = 1)) + # angle x labels
   facet_wrap(~species)
              #labeller = labeller(species = species_labs))
->>>>>>> origin
-
 
 ```
 
