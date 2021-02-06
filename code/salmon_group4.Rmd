@@ -22,6 +22,7 @@ library(sf)
 library(rnaturalearth)
 library(rnaturalearthdata)
 library(rgeos) #for worlds polygon 
+library(colorRamps)
 ```
 
 ## Overview {.tabset}
@@ -118,34 +119,42 @@ ggplot(salmon_longer, aes(x = date, y = counts, color = species)) + # make ggplo
 ### Seasonplots 
 
 ```{r seasonplot, Jaleise Hall}
-
 salmon_season <- salmon_longer %>% 
-  gg_season(counts)
+  index_by(yy_mm = ~yearmonth(.)) %>% 
+  group_by(species) %>% 
+  summarize(monthly_mean_counts = mean(counts, na.rm = TRUE)) # get monthly averages by species
 
-coho_subset <- willamette_salmon %>% 
-  select(date, coho) 
-coho_subset %>% 
-  gg_season(coho)
+salmon_season %>% 
+  gg_season(monthly_mean_counts) +
+  scale_color_gradientn(colours = topo.colors(10)) + # change color palette
+  labs(title = "Mean Seasonal Salmon Counts at Willamette Falls Fish Passage",
+       y = "Average Counts",
+       x = "",
+       subtitle = "2001 - 2010",
+       caption = "Jaleise Hall, 2021\nSource: Columbia River DART") +
+  theme_minimal()
+#Are we supposed to add a figure caption?: "This plot shows the monthly averaged seasonal salmon counts for each of the salmon species observed at Willamette Falls Fish. Colored lines represent the different years of observation between 2001 - 2010."
 
-jack_coho_subset <- willamette_salmon %>% 
-  select(date, jack_coho) 
-jack_coho_subset %>% 
-  gg_season(jack_coho)
-
-steelhead_subset <- willamette_salmon %>% 
-  select(date, steelhead) 
-steelhead_subset %>% 
-  gg_season(steelhead)
-
-gg_subseries(salmon_longer, period = "day")
+salmon_season %>% 
+  gg_subseries(monthly_mean_counts) +
+  labs(title = "Mean Montly Seasonal Salmon Counts at Willamette Falls Fish \n Passage",
+       y = "",
+       x = "",
+       subtitle = "2001 - 2010",
+       caption = "Jaleise Hall, 2021\nSource: Columbia River DART") +
+  scale_x_yearmonth(date_labels = "20%y",
+                  date_breaks = "3 years") # show every 3 years to look cleaner
+  #NOTE: I did not add theme_minimal() to the subseries plot as it makes the plot look a bit messy in my opinion
+#Figure caption?: "The plot takes the monthly averaged seasonal salmon counts and separates them by month to see any individual trends occuring for a single month by the corresponding species."
 
 ```
 
+
 #### Takeaways
 
-* 
-*
-*
+* Steelheads are observed year round with lower occurrences between July and December months. Jack Coho and Coho salmon are really only seen between August and November.
+* There seems to be a decreasing trend in Steelhead abundance from 2001 - 2010. There is increased abundance of Jack Coho and Coho salmon, however, the changes in abundance between the two species seems random as oppose to following a clear trend.
+* Average peak counts of salmon are much higher for Steelhead and Coho than for Jack Coho.
 
 ### Annual counts by species
 
@@ -170,7 +179,7 @@ ggplot(data = annual, aes(x = yr, y = annual_count, color = species)) +
        title = "Salmon counts at Willamette Falls fish passage by year",
        subtitle = "2001 - 2010",
        caption = "Minnie Ringland, 2021\nSource: Columbia River DART") +
-  scale_fill_manual(values = c("aquamarine3", "cornflowerblue", "goldenrod1")) + # change colors
+  scale_color_manual(values = c("aquamarine3", "cornflowerblue", "goldenrod1")) + # change colors
   #scale_x_discrete(breaks = 2001:2011) +
   scale_x_date(date_breaks = "1 year", # show all years #
    date_labels = "%Y") +
