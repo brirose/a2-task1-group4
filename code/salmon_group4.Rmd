@@ -115,16 +115,9 @@ ggplot(salmon_longer, aes(x = date, y = counts, color = species)) + # make ggplo
 * Coho increased in abundance over the time studied, particularly in 2009 and 2010.
 
 
-### Seasonplots -- Also ugly and unfinished
+### Seasonplots 
 
 ```{r seasonplot, Jaleise Hall}
-# salmon_season <-  willamette_salmon %>%
-#   rename(Coho = coho,
-#          "Jack Coho" = jack_coho,
-#          Steelhead = steelhead) %>% 
-#   pivot_longer(Coho:Steelhead, 
-#                names_to = "species",
-#                values_to = "counts") 
 
 salmon_season <- salmon_longer %>% 
   gg_season(counts)
@@ -143,10 +136,9 @@ steelhead_subset <- willamette_salmon %>%
   select(date, steelhead) 
 steelhead_subset %>% 
   gg_season(steelhead)
-```
 
-```{r}
 gg_subseries(salmon_longer, period = "day")
+
 ```
 
 #### Takeaways
