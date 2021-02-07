@@ -118,7 +118,7 @@ ggplot(salmon_longer, aes(x = date, y = counts, color = species)) + # make ggplo
 
 ### Seasonplots 
 
-```{r seasonplot, Jaleise Hall}
+```{r seasonplot 1, Jaleise Hall, fig.cap= "**Figure 2.** This plot shows the monthly averaged seasonal salmon counts for each of the salmon species observed at Willamette Falls Fish. Colored lines represent the different years of observation between 2001 - 2010."}
 salmon_season <- salmon_longer %>% 
   index_by(yy_mm = ~yearmonth(.)) %>% 
   group_by(species) %>% 
@@ -126,15 +126,19 @@ salmon_season <- salmon_longer %>%
 
 salmon_season %>% 
   gg_season(monthly_mean_counts) +
-  scale_color_gradientn(colours = topo.colors(10)) + # change color palette
+  scale_color_gradientn(colours = topo.colors(10)) + 
   labs(title = "Mean Seasonal Salmon Counts at Willamette Falls Fish Passage",
        y = "Average Counts",
        x = "",
        subtitle = "2001 - 2010",
        caption = "Jaleise Hall, 2021\nSource: Columbia River DART") +
-  theme_minimal()
-#Are we supposed to add a figure caption?: "This plot shows the monthly averaged seasonal salmon counts for each of the salmon species observed at Willamette Falls Fish. Colored lines represent the different years of observation between 2001 - 2010."
+  theme_minimal() +
+  theme(legend.position = "none") # if we can fix the legend output, then we can add the legend back in
 
+```
+
+
+```{r seasonplot 2, Jaleise Hall, fig.cap= "**Figure 3.** The plot takes the monthly averaged seasonal salmon counts and separates them by month to see any individual trends occuring for a single month by the corresponding species."}
 salmon_season %>% 
   gg_subseries(monthly_mean_counts) +
   labs(title = "Mean Montly Seasonal Salmon Counts at Willamette Falls Fish \n Passage",
@@ -142,10 +146,9 @@ salmon_season %>%
        x = "",
        subtitle = "2001 - 2010",
        caption = "Jaleise Hall, 2021\nSource: Columbia River DART") +
-  scale_x_yearmonth(date_labels = "20%y",
+  scale_x_yearmonth(date_labels = "20%y", # %y only add the last two digits of the year. 
                   date_breaks = "3 years") # show every 3 years to look cleaner
   #NOTE: I did not add theme_minimal() to the subseries plot as it makes the plot look a bit messy in my opinion
-#Figure caption?: "The plot takes the monthly averaged seasonal salmon counts and separates them by month to see any individual trends occuring for a single month by the corresponding species."
 
 ```
 
@@ -157,10 +160,6 @@ salmon_season %>%
 * Average peak counts of salmon are much higher for Steelhead and Coho than for Jack Coho.
 
 ### Annual counts by species
-
-Issues I'm having: 
-* I think the "year" variable I'm using is not a date type? Bri's code for formatting the x-axis breaks isn't working for me.; yeah its not of date class; i converted it, but what you had also works (just remove the `mutate`)
-* How to get the facets labeled with the proper names of the species?
 
 ```{r annual counts, Minnie Ringland}
 # Using Bri's "pivot_longer-ed" df:
