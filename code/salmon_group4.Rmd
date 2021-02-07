@@ -138,7 +138,7 @@ salmon_season %>%
 ```{r seasonplot 2, Jaleise Hall, fig.cap= "**Figure 4.** The plot takes the monthly averaged seasonal salmon counts and separates them by month to show individual trends occuring for a single month by the corresponding species."}
 salmon_season %>% 
   gg_subseries(monthly_mean_counts) +
-  labs(title = "Mean Montly Seasonal Salmon Counts at Willamette Falls Fish \n Passage",
+  labs(title = "Mean Montly Seasonal Salmon Counts at Willamette Falls Fish \nPassage",
        y = "",
        x = "",
        subtitle = "2001 - 2010",
@@ -152,13 +152,9 @@ salmon_season %>%
 
 #### Takeaways
 
-* Steelheads are observed year round with lower occurrences between July and December months. Jack Coho and Coho salmon are really only seen between August and November.
-* There seems to be a decreasing trend in Steelhead abundance from 2001 - 2010. There is increased abundance of Jack Coho and Coho salmon, however, the changes in abundance between the two species seems random as oppose to following a clear trend.
+* Both the seasonplot and subseries plot make the seasonal difference in peak sightings for each species apparent. As gathered from the original time series, Steelheads are observed year round, but peak in early summer (July). Conversely, Coho and Jack Coho are not frequently observed until their peak in the fall (Aug - Nov).
+* There is a decreasing trend in Steelhead abundance from 2001 - 2010. While there is increased abundance of Jack Coho and Coho salmon, the changes in abundance seem random as opposed to following a clear trend.
 * Average peak counts of salmon are much higher for Steelhead and Coho than for Jack Coho.
-
-
-Minnie's suggestion to expand on first bullet:  
-* Both the seasonplot and subseries plot make the seasonal difference in peak sightings for each species more apparent. As gathered from the original time series, Steelheads are observed in more abundance year round, but peaking in early summer. Conversely, the coho species are not really observed until their peak in the fall.
 
 
 ### Annual counts by species
@@ -193,6 +189,6 @@ ggplot(data = annual, aes(x = yr, y = annual_count, color = species)) +
 
 #### Takeaways
 
-* As seen in the original time series, Steelhead were sighted in greater numbers than the two Coho species across almost the entire study period, suggesting that the population is more abundant or that these fish are easier to count. 
-* Once we collapse the data by year, there do not appear to be any patterns in terms of cyclicality or trends common across species. (The monthly variation within a year is hidden)
-* Within species though, Steelhead populations appear to be trending down, while Coho fish were seen in greater abundance over time, particularly in the last two years of the study period, which could suggest a population increase. Jack Coho fish seem to be present in very low numbers with no change over time, which could be cause for concern.
+* As seen in the original time series, Steelhead were sighted in greater numbers than Coho and Jack Coho most of the study period, suggesting that the population is more abundant or that these fish are easier to count. 
+* Once we aggregate the data by year, there do not appear to be any patterns in terms of cyclicality or trends common across species (The monthly variation within a year is hidden).
+* Within species, Steelhead populations appear to be trending down, while Coho fish were seen in greater abundance over time, particularly in the last two years of the study period, which could suggest a population increase. Jack Coho fish seem to be present in very low numbers with no change over time, which could be cause for concern.
