@@ -1,7 +1,7 @@
 ---
 title: "Willamette Falls fish passage time series summary"
 author: "Bri Baker, Jaleise Hall, Minnie Ringland"
-date: "1/31/2021"
+date: "2/7/2021"
 output:
   html_document:
     theme: cosmo
@@ -71,7 +71,7 @@ salmon_longer <- willamette_salmon %>%
   replace(is.na(.), 0) %>%  # replace na with 0
   rename(Coho = coho,
          "Jack Coho" = jack_coho,
-         Steelhead = steelhead) %>% 
+         Steelhead = steelhead) %>% # nicer-looking names for graphing
   pivot_longer(Coho:Steelhead, # consolidate species to one column
                names_to = "species",
                values_to = "counts")
@@ -80,7 +80,7 @@ salmon_longer <- willamette_salmon %>%
 
 ### Original time series
 
-```{r timeseries, Bri Baker, fig.cap="**Figure 2.** Timeseries showing Coho (green), Jack Coho (blue), and Steelhead (yellow) salmon counts at Willamette Falls from 2001 to 2010. Sesasonal and specific variation is apparent."}
+```{r timeseries, Bri Baker, fig.cap="**Figure 2.** Timeseries showing Coho (green), Jack Coho (blue), and Steelhead (yellow) salmon counts at Willamette Falls from 2001 to 2010. Seasonal and specific variation is apparent."}
 
 ggplot(salmon_longer, aes(x = date, y = counts, color = species)) + # make ggplot
   geom_line() + #as a lineplot
@@ -156,17 +156,23 @@ salmon_season %>%
 * There seems to be a decreasing trend in Steelhead abundance from 2001 - 2010. There is increased abundance of Jack Coho and Coho salmon, however, the changes in abundance between the two species seems random as oppose to following a clear trend.
 * Average peak counts of salmon are much higher for Steelhead and Coho than for Jack Coho.
 
+
+Minnie's suggestion to expand on first bullet:  
+* Both the seasonplot and subseries plot make the seasonal difference in peak sightings for each species more apparent. As gathered from the original time series, Steelheads are observed in more abundance year round, but peaking in early summer. Conversely, the coho species are not really observed until their peak in the fall.
+
+
 ### Annual counts by species
 
 ```{r annual counts, Minnie Ringland, fig.cap="**Figure 5.** Annual timeseries showing Coho (green), Jack Coho (blue), and Steelhead (yellow) salmon counts at Willamette Falls from 2001 to 2010."}
+
 # Using Bri's "pivot_longer-ed" df:
 annual <- salmon_longer %>%
-  group_by_key() %>% # group by sp
+  group_by_key() %>% # group by species
   index_by(yr = ~year(.)) %>% # index by year
   summarize(annual_count = sum(counts)) %>% # sum counts by year and species
   mutate(yr = as.Date(ISOdate(yr, 1, 1)))
 
-species_labs <- c("Coho", "Jack Coho", "Steelhead") # capitalize
+
 # Using Bri's graph formatting:
 ggplot(data = annual, aes(x = yr, y = annual_count, color = species)) +
   geom_line(size=1.25) +
@@ -174,13 +180,13 @@ ggplot(data = annual, aes(x = yr, y = annual_count, color = species)) +
        y = "Count",
        title = "Salmon counts at Willamette Falls fish passage by year",
        subtitle = "2001 - 2010",
+       color = "Species",
        caption = "Minnie Ringland, 2021\nSource: Columbia River DART") +
   scale_color_manual(values = c("aquamarine3", "cornflowerblue", "goldenrod1")) + # change colors
-  #scale_x_discrete(breaks = 2001:2011) +
-  scale_x_date(date_breaks = "1 year", # show all years #
-   date_labels = "%Y") +
-  theme_minimal() + # use theme_minimal
-  theme(legend.position = "none", # faceted so no legend
+  scale_x_date(date_breaks = "1 year", date_labels = "%Y") + # show all years in YYYY format
+  theme_minimal() +
+  theme(legend.position = c(0.75, 0.75), # move legend
+        legend.background = element_rect(fill="white", linetype = "solid", color = "whitesmoke"), # format legend
         axis.text.x = element_text(angle = 45, vjust = 1, hjust = 1))# angle x labels
   
 ```
@@ -188,5 +194,5 @@ ggplot(data = annual, aes(x = yr, y = annual_count, color = species)) +
 #### Takeaways
 
 * As seen in the original time series, Steelhead were sighted in greater numbers than the two Coho species across almost the entire study period, suggesting that the population is more abundant or that these fish are easier to count. 
-* Once we collapse the data by year, there do not appear to be any patterns in terms of cyclicality or trends common across species.
+* Once we collapse the data by year, there do not appear to be any patterns in terms of cyclicality or trends common across species. (The monthly variation within a year is hidden)
 * Within species though, Steelhead populations appear to be trending down, while Coho fish were seen in greater abundance over time, particularly in the last two years of the study period, which could suggest a population increase. Jack Coho fish seem to be present in very low numbers with no change over time, which could be cause for concern.
