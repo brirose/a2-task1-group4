@@ -38,7 +38,7 @@ Columbia River DART (Data Access in Real Time), Columbia Basin Research, Univers
 Accessed Feb 1, 2021 at [http://www.cbr.washington.edu/dart/query/adult_graph_text](http://www.cbr.washington.edu/dart/query/adult_graph_text).
 
 
-```{r map}
+```{r map, fig.cap="**Figure 1.** Map indicating location of Willamette Falls in Oregon."}
 world <- ne_countries(scale = "medium", returnclass = "sf") # pull world data
 states <- st_as_sf(map("state", plot = FALSE, fill = TRUE)) # pull state data
 states <- cbind(states, st_coordinates(st_centroid(states))) # project
@@ -54,7 +54,6 @@ ggplot(data = world) + # plot
   coord_sf(xlim = c(-125, -110), ylim = c(40, 50), expand = FALSE) + # set bounding
   theme_minimal() + # minimal theme
   labs(title = "Willamette Falls location", # add labs
-       subtitle = "2001 - 2010",
        caption = "Bri Baker, 2021")
 
 ```
@@ -70,24 +69,18 @@ willamette_salmon <- read_csv(here("data", "willamette_fish_passage.csv")) %>%  
 
 salmon_longer <- willamette_salmon %>%  
   replace(is.na(.), 0) %>%  # replace na with 0
-  pivot_longer(coho:steelhead, # consolidate species to one column
-               names_to = "species",
-               values_to = "counts") 
-
-```
-
-### Original time series
-
-```{r timeseries, Bri Baker}
-
-salmon_longer <- willamette_salmon %>%  
-  replace(is.na(.), 0) %>%  # replace na with 0
   rename(Coho = coho,
          "Jack Coho" = jack_coho,
          Steelhead = steelhead) %>% 
   pivot_longer(Coho:Steelhead, # consolidate species to one column
                names_to = "species",
                values_to = "counts")
+
+```
+
+### Original time series
+
+```{r timeseries, Bri Baker, fig.cap="**Figure 2.** Timeseries showing Coho (green), Jack Coho (blue), and Steelhead (yellow) salmon counts at Willamette Falls from 2001 to 2010. Sesasonal and specific variation is apparent."}
 
 ggplot(salmon_longer, aes(x = date, y = counts, color = species)) + # make ggplot
   geom_line() + #as a lineplot
@@ -97,8 +90,7 @@ ggplot(salmon_longer, aes(x = date, y = counts, color = species)) + # make ggplo
        subtitle = "2001 - 2010",
        caption = "Bri Baker, 2021\nSource: Columbia River DART",
        color = "Species") +
-  scale_color_manual(#labels = c("Coho", "Jack Coho", "Steelhead"), # change legend names
-                     values = c("aquamarine3", "cornflowerblue", "goldenrod1")) + # change colors
+  scale_color_manual(values = c("aquamarine3", "cornflowerblue", "goldenrod1")) + # change colors
   scale_x_date(date_breaks = "1 year", # show all years
                date_labels = "%Y") +
   theme_minimal() + # use theme_minimal
@@ -111,14 +103,14 @@ ggplot(salmon_longer, aes(x = date, y = counts, color = species)) + # make ggplo
 
 #### Takeaways
 
-* The most apparent pattern in the data is seasonality on an annual basis, with peak sightings occurring mid-year(?).
+* The most apparent pattern in the data is seasonality on an annual basis, with peak sightings occurring mid-year.
 * The bulk of Steelhead movement occurs earlier in the year than that of Coho and Jack Coho.
 * Coho increased in abundance over the time studied, particularly in 2009 and 2010.
 
 
 ### Seasonplots 
 
-```{r seasonplot 1, Jaleise Hall, fig.cap= "**Figure 2.** This plot shows the monthly averaged seasonal salmon counts for each of the salmon species observed at Willamette Falls Fish. Colored lines represent the different years of observation between 2001 - 2010."}
+```{r seasonplot 1, Jaleise Hall, fig.cap= "**Figure 3.** This plot shows the monthly averaged seasonal salmon counts for each of the salmon species observed at Willamette Falls Fish. Colored lines represent the different years of observation between 2001 - 2010."}
 salmon_season <- salmon_longer %>% 
   index_by(yy_mm = ~yearmonth(.)) %>% 
   group_by(species) %>% 
@@ -126,19 +118,24 @@ salmon_season <- salmon_longer %>%
 
 salmon_season %>% 
   gg_season(monthly_mean_counts) +
-  scale_color_gradientn(colours = topo.colors(10)) + 
+  scale_color_gradient2(labels = seq(2000, 2010, 1),
+                        breaks = seq(0,10,1),
+                        low = "goldenrod1", 
+                        mid = "aquamarine3", 
+                        high = "cornflowerblue",
+                        midpoint = 5)+
   labs(title = "Mean Seasonal Salmon Counts at Willamette Falls Fish Passage",
        y = "Average Counts",
        x = "",
        subtitle = "2001 - 2010",
        caption = "Jaleise Hall, 2021\nSource: Columbia River DART") +
-  theme_minimal() +
-  theme(legend.position = "none") # if we can fix the legend output, then we can add the legend back in
+  theme_minimal()
+  
 
 ```
 
 
-```{r seasonplot 2, Jaleise Hall, fig.cap= "**Figure 3.** The plot takes the monthly averaged seasonal salmon counts and separates them by month to see any individual trends occuring for a single month by the corresponding species."}
+```{r seasonplot 2, Jaleise Hall, fig.cap= "**Figure 4.** The plot takes the monthly averaged seasonal salmon counts and separates them by month to show individual trends occuring for a single month by the corresponding species."}
 salmon_season %>% 
   gg_subseries(monthly_mean_counts) +
   labs(title = "Mean Montly Seasonal Salmon Counts at Willamette Falls Fish \n Passage",
@@ -161,7 +158,7 @@ salmon_season %>%
 
 ### Annual counts by species
 
-```{r annual counts, Minnie Ringland}
+```{r annual counts, Minnie Ringland, fig.cap="**Figure 5.** Annual timeseries showing Coho (green), Jack Coho (blue), and Steelhead (yellow) salmon counts at Willamette Falls from 2001 to 2010."}
 # Using Bri's "pivot_longer-ed" df:
 annual <- salmon_longer %>%
   group_by_key() %>% # group by sp
@@ -184,10 +181,8 @@ ggplot(data = annual, aes(x = yr, y = annual_count, color = species)) +
    date_labels = "%Y") +
   theme_minimal() + # use theme_minimal
   theme(legend.position = "none", # faceted so no legend
-        axis.text.x = element_text(angle = 45, vjust = 1, hjust = 1)) + # angle x labels
-  facet_wrap(~species)
-             #labeller = labeller(species = species_labs))
-
+        axis.text.x = element_text(angle = 45, vjust = 1, hjust = 1))# angle x labels
+  
 ```
 
 #### Takeaways
